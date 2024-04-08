@@ -6,7 +6,7 @@ import 'package:mally/widgets/custom_floating_button.dart';
 
 // ignore_for_file: must_be_immutable
 class HomePlusScreen extends StatelessWidget {
-  HomePlusScreen({Key? key}) : super(key: key);
+  HomePlusScreen({super.key});
 
   Completer<GoogleMapController> googleMapController = Completer();
 
@@ -33,7 +33,7 @@ class HomePlusScreen extends StatelessWidget {
         width: double.maxFinite,
         child: GoogleMap(
             mapType: MapType.normal,
-            initialCameraPosition: CameraPosition(
+            initialCameraPosition: const CameraPosition(
                 target: LatLng(37.43296265331129, -122.08832357078792),
                 zoom: 14.4746),
             onMapCreated: (GoogleMapController controller) {
@@ -103,7 +103,7 @@ class HomePlusScreen extends StatelessWidget {
                     child: Text("Map",
                         style: CustomTextStyles.labelLargeOnPrimary))
               ]),
-              Spacer(flex: 51),
+              const Spacer(flex: 51),
               GestureDetector(
                   onTap: () {
                     onTapFrameTwo(context);
@@ -117,7 +117,7 @@ class HomePlusScreen extends StatelessWidget {
                         padding: EdgeInsets.only(top: 11.v),
                         child: Text("Photo", style: theme.textTheme.labelLarge))
                   ])),
-              Spacer(flex: 48),
+              const Spacer(flex: 48),
               GestureDetector(
                   onTap: () {
                     onTapFrameOne(context);

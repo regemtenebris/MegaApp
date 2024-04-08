@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "105446073241",
+    "project_id": "mallydb-42f2b",
+    "storage_bucket": "mallydb-42f2b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105446073241:android:ed142559f6d0a057a3a908",
+        "android_client_info": {
+          "package_name": "com.mally.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNVFfh1maFfKn-Qmvt3QQG53M1Q78ERaQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

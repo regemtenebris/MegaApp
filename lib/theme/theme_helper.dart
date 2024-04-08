@@ -6,12 +6,12 @@ String _appTheme = "primary";
 /// Helper class for managing themes and colors.
 class ThemeHelper {
   // A map of custom color themes supported by the app
-  Map<String, PrimaryColors> _supportedCustomColor = {
+  final Map<String, PrimaryColors> _supportedCustomColor = {
     'primary': PrimaryColors()
   };
 
 // A map of color schemes supported by the app
-  Map<String, ColorScheme> _supportedColorScheme = {
+  final Map<String, ColorScheme> _supportedColorScheme = {
     'primary': ColorSchemes.primaryColorScheme
   };
 
@@ -109,7 +109,7 @@ class TextThemes {
 
 /// Class containing the supported color schemes.
 class ColorSchemes {
-  static final primaryColorScheme = ColorScheme.light(
+  static const primaryColorScheme = ColorScheme.light(
     // Primary colors
     primary: Color(0XFF9B9B9B),
     primaryContainer: Color(0XFF2D3648),
@@ -123,27 +123,27 @@ class ColorSchemes {
 /// Class containing custom colors for a primary theme.
 class PrimaryColors {
   // Black
-  Color get black900 => Color(0XFF010101);
+  Color get black900 => const Color(0XFF010101);
 
   // Blue
-  Color get blue800 => Color(0XFF0965B9);
+  Color get blue800 => const Color(0XFF0965B9);
 
   // BlueGray
-  Color get blueGray700 => Color(0XFF544757);
-  Color get blueGray70001 => Color(0XFF474F57);
-  Color get blueGray70002 => Color(0XFF475657);
-  Color get blueGray800 => Color(0XFF47574D);
+  Color get blueGray700 => const Color(0XFF544757);
+  Color get blueGray70001 => const Color(0XFF474F57);
+  Color get blueGray70002 => const Color(0XFF475657);
+  Color get blueGray800 => const Color(0XFF47574D);
 
   // Gray
-  Color get gray800 => Color(0XFF574747);
-  Color get gray80001 => Color(0XFF4E5747);
-  Color get gray80002 => Color(0XFF575147);
+  Color get gray800 => const Color(0XFF574747);
+  Color get gray80001 => const Color(0XFF4E5747);
+  Color get gray80002 => const Color(0XFF575147);
 
   // Green
-  Color get greenA700 => Color(0XFF0CCD14);
+  Color get greenA700 => const Color(0XFF0CCD14);
 
   // White
-  Color get whiteA700 => Color(0XFFFFFFFF);
+  Color get whiteA700 => const Color(0XFFFFFFFF);
 }
 
 PrimaryColors get appTheme => ThemeHelper().themeColor();

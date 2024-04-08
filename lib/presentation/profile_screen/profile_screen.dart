@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mally/core/app_export.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +132,7 @@ class ProfileScreen extends StatelessWidget {
                         padding: EdgeInsets.only(top: 13.v),
                         child: Text("Map", style: theme.textTheme.labelLarge))
                   ])),
-              Spacer(flex: 51),
+              const Spacer(flex: 51),
               GestureDetector(
                   onTap: () {
                     onTapFrameTwo(context);
@@ -146,7 +146,7 @@ class ProfileScreen extends StatelessWidget {
                         padding: EdgeInsets.only(top: 11.v),
                         child: Text("Photo", style: theme.textTheme.labelLarge))
                   ])),
-              Spacer(flex: 48),
+              const Spacer(flex: 48),
               Column(mainAxisSize: MainAxisSize.min, children: [
                 CustomImageView(
                     imagePath: ImageConstant.imgIconUserOnprimary,
@@ -167,6 +167,6 @@ class ProfileScreen extends StatelessWidget {
 
   /// Navigates to the photoOneScreen when the action is triggered.
   onTapFrameTwo(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.photoOneScreen);
+    Navigator.pushNamed(context, AppRoutes.testCamera);
   }
 }

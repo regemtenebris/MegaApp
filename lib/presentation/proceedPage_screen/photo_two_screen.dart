@@ -1,12 +1,20 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:mally/core/app_export.dart';
 import 'package:mally/widgets/custom_elevated_button.dart';
 
 class PhotoTwoScreen extends StatelessWidget {
-  const PhotoTwoScreen({Key? key}) : super(key: key);
-
+  const PhotoTwoScreen({super.key});
+  
   @override
   Widget build(BuildContext context) {
+    final arguments = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final pathOfImage = arguments['data'] as String;
+    final shopName = arguments['shopName'] as String;
+    File? selectedImage;
+    selectedImage = File(pathOfImage);
+    
+    
     mediaQueryData = MediaQuery.of(context);
     return SafeArea(
         child: Scaffold(
@@ -14,14 +22,27 @@ class PhotoTwoScreen extends StatelessWidget {
                 width: double.maxFinite,
                 padding: EdgeInsets.symmetric(vertical: 14.v),
                 child: Column(children: [
-                  CustomImageView(
-                      imagePath: ImageConstant.imgImage4,
+                  selectedImage != null ? Image.file(selectedImage) : const Text('Selected Image'),
+                  /*CustomImageView(
+                      imagePath: pathOfImage,
                       height: 579.v,
-                      width: 393.h),
-                  SizedBox(height: 23.v),
-                  Text("Do you want to proceed with this image?",
-                      style: theme.textTheme.titleMedium),
-                  SizedBox(height: 20.v),
+                      width: 393.h),*/
+                  SizedBox(height: 30.v),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.95, // Set max width to 80% of screen width
+                    ),
+                    child: Text(
+                      "You are currently at $shopName. \n Do you wish to proceed?",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                      ) //theme.textTheme.titleMedium,
+                       
+                    ),
+                  ),
+                  
+                  SizedBox(height: 30.v),
                   _buildProceedButtons(context),
                   SizedBox(height: 5.v)
                 ])),
@@ -47,6 +68,7 @@ class PhotoTwoScreen extends StatelessWidget {
               margin: EdgeInsets.only(left: 29.h),
               buttonStyle: CustomButtonStyles.fillGreenA,
               onPressed: () {
+                //sendToServer();
                 onTapPROCEED(context);
               })
         ]));
@@ -75,7 +97,7 @@ class PhotoTwoScreen extends StatelessWidget {
                         padding: EdgeInsets.only(top: 13.v),
                         child: Text("Map", style: theme.textTheme.labelLarge))
                   ])),
-              Spacer(flex: 51),
+              const Spacer(flex: 51),
               Column(mainAxisSize: MainAxisSize.min, children: [
                 CustomImageView(
                     imagePath: ImageConstant.imgIconCameraOnprimary,
@@ -86,7 +108,7 @@ class PhotoTwoScreen extends StatelessWidget {
                     child: Text("Photo",
                         style: CustomTextStyles.labelLargeOnPrimary))
               ]),
-              Spacer(flex: 48),
+              const Spacer(flex: 48),
               GestureDetector(
                   onTap: () {
                     onTapFrameOne(context);
@@ -103,10 +125,30 @@ class PhotoTwoScreen extends StatelessWidget {
                   ]))
             ]));
   }
+  /*
+  sendToServer(){
+    try{
+      String filename = this.img!.path.split('/').last;
+      FormData formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(this.img!.path, filename: filename, contentType: MediaType('image', 'jpeg')),
+      });
+      dio.post(
+        'https://mall-ml-model.lm.r.appspot.com:5001/photos/',
+         data: formData,
+         options: Options(
+          headers: {"Content-Type": "multipart/form-data"},
+          method: 'POST',
+          responseType: ResponseType.json,
+         )
+      ).then((response) => print(response)).catchError((error) => print(error));
+    }catch(e){
+      print(e);
+    }
+  }*/
 
   /// Navigates to the photoOneScreen when the action is triggered.
   onTapCANCEL(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.photoOneScreen);
+    Navigator.pushNamed(context, AppRoutes.testCamera);
   }
 
   /// Navigates to the photoThreeScreen when the action is triggered.

@@ -3,10 +3,7 @@ import 'package:mally/core/app_export.dart';
 
 // ignore: must_be_immutable
 class FoodlistItemWidget extends StatelessWidget {
-  const FoodlistItemWidget({Key? key})
-      : super(
-          key: key,
-        );
+  const FoodlistItemWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mally/core/app_export.dart';
 
 class CustomFloatingButton extends StatelessWidget {
-  CustomFloatingButton({
-    Key? key,
+  const CustomFloatingButton({
+    super.key,
     this.alignment,
     this.backgroundColor,
     this.onTap,
@@ -11,9 +11,7 @@ class CustomFloatingButton extends StatelessWidget {
     this.height,
     this.decoration,
     this.child,
-  }) : super(
-          key: key,
-        );
+  });
 
   final Alignment? alignment;
 

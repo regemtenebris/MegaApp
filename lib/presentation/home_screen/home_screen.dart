@@ -7,7 +7,7 @@ import 'package:mally/widgets/custom_floating_button.dart';
 
 // ignore_for_file: must_be_immutable
 class HomeScreen extends StatelessWidget {
-  HomeScreen({Key? key, required this.cameras}) : super(key: key);
+  HomeScreen({super.key, required this.cameras});
 
   final List<CameraDescription> cameras;
 
@@ -42,7 +42,7 @@ class HomeScreen extends StatelessWidget {
         height: 712.v,
         width: double.maxFinite,
         child: GoogleMap(
-          padding: EdgeInsets.only(bottom: 80, right: 10, left: 10),
+          padding: const EdgeInsets.only(bottom: 80, right: 10, left: 10),
             mapType: MapType.normal,
             initialCameraPosition: CameraPosition(
                 target: _center,
@@ -89,9 +89,9 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildSearchBarSection(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 20),
+      margin: const EdgeInsets.only(top: 20),
       alignment: Alignment.topCenter,
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: SearchBar(
         leading: const Icon(Icons.search),
         trailing: <Widget>[
@@ -128,7 +128,7 @@ class HomeScreen extends StatelessWidget {
                     child: Text("Map",
                         style: CustomTextStyles.labelLargeOnPrimary))
               ]),
-              Spacer(flex: 51),
+              const Spacer(flex: 51),
               GestureDetector(
                   onTap: () {
                     onTapFrameTwo(context);
@@ -142,7 +142,7 @@ class HomeScreen extends StatelessWidget {
                         padding: EdgeInsets.only(top: 11.v),
                         child: Text("Photo", style: theme.textTheme.labelLarge))
                   ])),
-              Spacer(flex: 48),
+              const Spacer(flex: 48),
               GestureDetector(
                   onTap: () {
                     onTapFrameOne(context);
@@ -178,7 +178,7 @@ class HomeScreen extends StatelessWidget {
 
   /// Navigates to the photoOneScreen when the action is triggered.
   onTapFrameTwo(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.photoOneScreen, arguments: cameras);
+    Navigator.pushNamed(context, AppRoutes.testCamera, arguments: cameras);
   }
 
   /// Navigates to the profileScreen when the action is triggered.

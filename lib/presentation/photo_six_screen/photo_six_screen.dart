@@ -3,7 +3,7 @@ import 'package:mally/core/app_export.dart';
 import 'package:mally/widgets/custom_elevated_button.dart';
 
 class PhotoSixScreen extends StatelessWidget {
-  const PhotoSixScreen({Key? key}) : super(key: key);
+  const PhotoSixScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +86,7 @@ class PhotoSixScreen extends StatelessWidget {
                                       Text("Map",
                                           style: theme.textTheme.labelLarge)
                                     ])),
-                                Spacer(flex: 51),
+                                const Spacer(flex: 51),
                                 Column(children: [
                                   CustomImageView(
                                       imagePath:
@@ -98,7 +98,7 @@ class PhotoSixScreen extends StatelessWidget {
                                       style:
                                           CustomTextStyles.labelLargeOnPrimary)
                                 ]),
-                                Spacer(flex: 48),
+                                const Spacer(flex: 48),
                                 GestureDetector(
                                     onTap: () {
                                       onTapFrameOne(context);
@@ -144,7 +144,7 @@ class PhotoSixScreen extends StatelessWidget {
 
   /// Navigates to the photoOneScreen when the action is triggered.
   onTapRetakeThePhoto(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.photoOneScreen);
+    Navigator.pushNamed(context, AppRoutes.testCamera);
   }
 
   /// Navigates to the homeScreen when the action is triggered.

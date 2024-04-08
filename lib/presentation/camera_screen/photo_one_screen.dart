@@ -1,19 +1,23 @@
 import 'dart:io';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:gallery_saver/gallery_saver.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mally/core/app_export.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:syncfusion_flutter_sliders/sliders.dart';
-//import 'package:url_launcher/url_launcher.dart';
-//import 'package:url_launcher/url_launcher_string.dart';
+
 
 class PhotoOneScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
 
-  PhotoOneScreen(this.cameras);
+  const PhotoOneScreen(this.cameras, {super.key});
 
   @override
   State<PhotoOneScreen> createState() => _PhotoOneScreenState();
@@ -34,7 +38,9 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
   File? _capturedImage;
   //For making sound
   AssetsAudioPlayer audioPlayer = AssetsAudioPlayer();
-
+  
+  XFile? img;
+  Dio dio = Dio();
 
   @override
   void initState() {
@@ -71,11 +77,9 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
   }
 
   void _switchCamera() async {
-    if(controller != null){
-      //Dispose the current controller to release the camera resource
-      await controller.dispose();
-    }
-    //Increment or reset the selected camera index
+    //Dispose the current controller to release the camera resource
+    await controller.dispose();
+      //Increment or reset the selected camera index
     _selectedCameraIndex = (_selectedCameraIndex + 1) % widget.cameras.length;
     //Initialize the new camera
     _initCamera(_selectedCameraIndex);
@@ -96,7 +100,7 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
       });
     }
     catch (e) {
-      print("Error message: ${e}");
+      print("Error message: $e");
     }
 
     if(mounted) {
@@ -110,7 +114,8 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
     if(!controller.value.isInitialized) {
       return;
     }
-
+    String filePath = '';
+    String imagePath = '';
     final Directory appDir = await path_provider.getApplicationSupportDirectory();
     final String capturePath = path.join(appDir.path, '${DateTime.now()}.png');
 
@@ -124,7 +129,7 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
       });
 
       final XFile capturedImage = await controller.takePicture();
-      String imagePath = capturedImage.path;
+      imagePath = capturedImage.path;
       await GallerySaver.saveImage(imagePath);
       print("Photo captured and saved to gallery");
 
@@ -133,7 +138,7 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
       audioPlayer.play();
 
       //For showing image in the left
-      final String filePath = '$capturePath/${DateTime.now().millisecondsSinceEpoch}.png';
+      filePath = '$capturePath/${DateTime.now().millisecondsSinceEpoch}.png';
       _capturedImage = File(capturedImage.path);
       _capturedImage!.renameSync(filePath);
 
@@ -144,6 +149,8 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
         isCapturing = false; 
       });
     }
+    // ignore: use_build_context_synchronously
+    //Navigator.pushNamed(context, AppRoutes.photoTwoScreen, arguments: {'imagePath' : imagePath});
   }
 
   void zoomCamera(double value) {
@@ -154,7 +161,7 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
   }
 
   Future<void> _setFocusPoint(Offset point) async {
-    if(controller != null && controller.value.isInitialized) {
+    if(controller.value.isInitialized) {
       try {
         final double x = point.dx.clamp(0.0, 1.0);
         final double y = point.dy.clamp(0.0, 1.0);
@@ -165,7 +172,7 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
         });
 
         //Reset _focusPoint after a short delay to remove the square
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 2));
         setState(() {
           _focusPoint = null;
         });
@@ -174,6 +181,45 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
       }
     }
   }
+
+  Future pickImage(BuildContext context, source) async {
+    try{
+      //final nav = Navigator.of(context);
+      final img = await ImagePicker().pickImage(source: source);
+      if(img != null){
+        //print(File(img.path));
+        setState((){
+          this.img = img;
+        });
+        try{
+          String filename = this.img!.path.split('/').last;
+          FormData formData = FormData.fromMap({
+            'file': await MultipartFile.fromFile(this.img!.path, filename: filename, contentType: MediaType('image', 'jpeg')),
+          });
+
+          dio.post(
+            'https://mall-ml-model.lm.r.appspot.com:5001/photos/',
+            data: formData,
+            options: Options(
+              headers: {"Content-Type": "multipart/form-data"},
+              method: 'POST',
+              responseType: ResponseType.json,
+            )
+          ).then((response) => print(response)).catchError((error) => print(error));
+        }catch(e){
+          print(e);
+        }
+        /*await nav.push(
+          MaterialPageRoute(
+            builder: (context) => MapScreen(shop: Shop('Summit Sport', 'Australian sportswear and sports equipment shop. It focuses on delivering ‘Best-In-Game’ products.', '2')),
+          ),
+        );*/
+      }
+    }on PlatformException catch(e){
+      print("Failed to print image: $e");  
+    }
+  }
+
 /*
   Future<void> openGallery() async {
     // Specify the URI for opening the gallery app
@@ -215,7 +261,7 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
                             onTap: () {
                               _toggleFlashLight();
                             },
-                            child: _isFlashOn == false ? Icon(Icons.flash_off, color: Colors.white) : Icon(Icons.flash_on, color: Colors.white)
+                            child: _isFlashOn == false ? const Icon(Icons.flash_off, color: Colors.white) : const Icon(Icons.flash_on, color: Colors.white)
                           ),
                         ),
                         Padding(
@@ -224,7 +270,7 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
                             onTap:() {
                               
                             },
-                            child: Icon(Icons.qr_code_scanner, color: Colors.white)
+                            child: const Icon(Icons.qr_code_scanner, color: Colors.white)
                           ),
                         ),
                       ],
@@ -293,8 +339,8 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
                     ),
                     child: Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
+                        const Padding(
+                          padding: EdgeInsets.all(10.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
@@ -342,12 +388,17 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         _capturedImage != null
-                                        ? Container(
+                                        ? SizedBox(
                                               width: 50,
                                               height: 50,
-                                              child: Image.file(
-                                                _capturedImage!,
-                                                fit: BoxFit.cover,
+                                              child: FloatingActionButton(
+                                                onPressed: (){
+                                                  pickImage(context, ImageSource.camera);
+                                                },
+                                                child: Image.file(
+                                                  _capturedImage!,
+                                                  fit: BoxFit.cover,
+                                                ),
                                               ),
                                         ): Container(),
                                       ],
@@ -380,7 +431,7 @@ class _PhotoOneScreenState extends State<PhotoOneScreen> {
                                       onTap: () {
                                         _switchCamera();
                                       },
-                                      child: Icon(Icons.cameraswitch_sharp, color: Colors.white, size: 40,),
+                                      child: const Icon(Icons.cameraswitch_sharp, color: Colors.white, size: 40,),
                                     ),
                                   )
                                 ],

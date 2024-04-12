@@ -2,6 +2,8 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mally/presentation/category_screen/photo_three_screen.dart';
+import 'package:mally/presentation/home_plus_screen/home_plus_screen.dart';
+import 'package:mally/presentation/testPath/testPath.dart';
 //import 'package:mally/presentation/app_navigation_screen/app_navigation_screen.dart';
 //import 'package:mally/presentation/photo_four_screen/photo_four_screen.dart';
 //import 'package:mally/presentation/photo_one_screen/photo_one_screen.dart';
@@ -42,7 +44,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       //initialRoute: AppRoutes.homeScreen,
       routes: AppRoutes.routes,
-      home: /*HomeScreen(cameras: cameras)*/PhotoThreeScreen()//const FoodCategoryScreen(),//HomeScreen(cameras: cameras),
+      home: TestPathScreen()//const TestPathScreen()//HomePlusScreen()//HomeScreen(cameras: cameras)///PhotoThreeScreen()//const FoodCategoryScreen(),//HomeScreen(cameras: cameras),
     );
   }
 }

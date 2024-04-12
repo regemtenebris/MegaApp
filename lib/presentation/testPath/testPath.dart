@@ -1,31 +1,61 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mally/core/app_export.dart';
 import 'package:mally/widgets/false_custom_search_view.dart';
+bool counter = false;
 
-// ignore: must_be_immutable
-class HomePlusScreen extends StatefulWidget {
-  const HomePlusScreen({super.key});
+// ignore_for_file: must_be_immutable
+class TestPathScreen extends StatefulWidget {
+  TestPathScreen({super.key});
 
   @override
-  State<HomePlusScreen> createState() => _HomePlusScreenState();
+  State<TestPathScreen> createState() => _TestPathScreenState();
 }
 
-class _HomePlusScreenState extends State<HomePlusScreen> {
+class _TestPathScreenState extends State<TestPathScreen> {
+  Uint8List? imageBytes1;
+  Uint8List? imageBytes2;
+  late Uint8List? imageBytesToShow = ogImageBytes1;
+  Uint8List? ogImageBytes0;
+  Uint8List? ogImageBytes1;
+  Uint8List? ogImageBytes2;
+  
   TextEditingController searchController = TextEditingController();
 
   // Variable to keep track of the currently selected button
   int _selectedButtonIndex = 1;
 
-  // Background images for each button
-  final List<String> _backgroundImages = [
-    'assets/images/ZeroFloor.png',
-    'assets/images/FirstFloor1.png',
-    'assets/images/SecondFloor.png',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    //if (counter == false){
+      imageToBytes();
+      counter = true;
+    //}
+  }
+
+  void imageToBytes() async{
+    // Load image asset as bytes
+    ByteData imageData0 = await rootBundle.load('assets/images/ZeroFloor.png');
+    ogImageBytes0 = imageData0.buffer.asUint8List();
+    ByteData imageData1 = await rootBundle.load('assets/images/FirstFloor1.png');
+    ogImageBytes1 = imageData1.buffer.asUint8List();
+    ByteData imageData2 = await rootBundle.load('assets/images/SecondFloor.png');
+    ogImageBytes2 = imageData2.buffer.asUint8List();
+
+    setState(() {
+      imageBytesToShow = ogImageBytes1;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final arguments = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+    if (arguments != null) {
+      imageBytes1 = arguments['image2'] as Uint8List?;
+      imageBytes2 = arguments['image1'] as Uint8List?;
+    }
+    
     mediaQueryData = MediaQuery.of(context);
     return SafeArea(
         child: Scaffold(
@@ -41,15 +71,21 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
           //Picture panel
           Positioned.fill(
             child: InteractiveViewer(
-              child: Image.asset(
-                _backgroundImages[_selectedButtonIndex],
-                fit: BoxFit.cover,
+              child: Container(
+                decoration: imageBytesToShow != null
+                    ? BoxDecoration(
+                        image: DecorationImage(
+                          image: MemoryImage(imageBytesToShow!),
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : null,
                 alignment: Alignment.center,
               ),
             ),
           ),
           //SearchBar panel
-          Positioned(
+          /* Positioned(
             top: 30, // Adjust this value according to your layout
             left: 16,
             right: 16,
@@ -57,13 +93,13 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
               padding: const EdgeInsets.only(top: 10.0),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.testSearch);
+                  Navigator.pushNamed(context, AppRoutes.testSearch); //need to add argument here
                 },
                 child: FalseCustomSearchView(
                   controller: searchController, hintText: "Search"),
               ),
             )
-          ),
+          ), */
           // Buttons Panel
           Positioned(
             top: 0,
@@ -78,11 +114,17 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        _selectedButtonIndex = 0;
+                        _selectedButtonIndex = 2;
+                        if(imageBytes2 == null){
+                          imageBytesToShow = ogImageBytes2;
+                        }else{
+                          imageBytesToShow = imageBytes1;
+                        }
+                        
                       });
                     },
                     style: ButtonStyle(
-                      backgroundColor: _selectedButtonIndex == 0
+                      backgroundColor: _selectedButtonIndex == 2
                           ? MaterialStateProperty.all<Color>(Colors.green)
                           : null,
                       minimumSize: MaterialStateProperty.all(const Size(64, 64)),
@@ -91,7 +133,7 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
                       ),
                     ),
                     child: Text(
-                      '0',
+                      '2',
                       textScaler: const TextScaler.linear(1.4),
                       style: TextStyle(
                         color: _selectedButtonIndex == 0
@@ -107,6 +149,11 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
                     onPressed: () {
                       setState(() {
                         _selectedButtonIndex = 1;
+                        if(imageBytes1 == null){
+                          imageBytesToShow = ogImageBytes1;
+                        }else{
+                          imageBytesToShow = imageBytes2;
+                        }
                       });
                     },
                     style: ButtonStyle(
@@ -134,11 +181,14 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        _selectedButtonIndex = 2;
+                        _selectedButtonIndex = 0;
+                        if(imageBytes1 == null){
+                          imageBytesToShow = ogImageBytes0;
+                        }
                       });
                     },
                     style: ButtonStyle(
-                      backgroundColor: _selectedButtonIndex == 2
+                      backgroundColor: _selectedButtonIndex == 0
                           ? MaterialStateProperty.all<Color>(Colors.green)
                           : null,
                       minimumSize: MaterialStateProperty.all(const Size(64, 64)),
@@ -147,7 +197,7 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
                       ),
                     ),
                     child: Text(
-                      '2',
+                      '0',
                       textScaler: const TextScaler.linear(1.4),
                       style: TextStyle(
                         color: _selectedButtonIndex == 0
@@ -162,47 +212,12 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
           ),
         ]
     );
-    /* Row(
-      children: [
-        // Button panel
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: double.infinity),
-          child: Container(
-            width: 50,
-            height: double.infinity,
-            color: Colors.grey[200],
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ListView(
-                  shrinkWrap: true,
-                  children: [
-                    buildNumberButton(0),
-                    const SizedBox(height: 5),
-                    buildNumberButton(1),
-                    const SizedBox(height: 5),
-                    buildNumberButton(2),
-                  ],
-                )
-              ]
-            ),
-          ),
-        ),
-        // Image display
-        Expanded(
-          flex: 3,
-          child: InteractiveViewer(
-            child: Image.asset(_currentImage),
-          ),
-        ),
-      ],
-    ); */
   }
 
   /// Section Widget
   Widget _buildNavbar(BuildContext context) {
     return Container(
-        margin: EdgeInsets.only(left: 65.h, right: 59.h, bottom: 10.v, top: 10.v),
+        margin: EdgeInsets.only(left: 65.h, right: 59.h, bottom: 10.v, top: 15.v),
         decoration:
             BoxDecoration(borderRadius: BorderRadiusStyle.roundedBorder15),
         child: Row(
@@ -215,12 +230,12 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
                   },
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     CustomImageView(
-                        imagePath: ImageConstant.imgIconMapPrimary,
+                        imagePath: ImageConstant.imgIconMap,
                         height: 24.adaptSize,
                         width: 24.adaptSize),
                     Padding(
                         padding: EdgeInsets.only(top: 13.v),
-                        child: Text("Map", style: theme.textTheme.labelLarge))
+                        child: Text("Map", style: CustomTextStyles.labelLargeOnPrimary))
                   ])),
               const Spacer(flex: 51),
               GestureDetector(
@@ -229,13 +244,13 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
                   },
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                 CustomImageView(
-                    imagePath: ImageConstant.imgIconCameraOnprimary,
+                    imagePath: ImageConstant.imgIconCamera,
                     height: 24.adaptSize,
                     width: 24.adaptSize),
                 Padding(
                     padding: EdgeInsets.only(top: 11.v),
                     child: Text("Photo",
-                        style: CustomTextStyles.labelLargeOnPrimary))
+                        style: theme.textTheme.labelLarge))
               ])),
               const Spacer(flex: 48),
               GestureDetector(
@@ -257,7 +272,7 @@ class _HomePlusScreenState extends State<HomePlusScreen> {
 
   /// Navigates to the homeScreen when the action is triggered.
   onTapFrameThree(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.homeScreen);
+    Navigator.pushNamed(context, AppRoutes.testPath);
   }
 
   /// Navigates to the photoOneScreen when the action is triggered.

@@ -21,6 +21,7 @@ import 'package:mally/presentation/proceedPage_screen/photo_two_screen.dart';
 import 'package:mally/presentation/screenSmoking/smokingScreen.dart';
 import 'package:mally/presentation/screenTechnology/technologyScreen.dart';
 import 'package:mally/presentation/app_navigation_screen/app_navigation_screen.dart';
+import 'package:mally/presentation/testPath/testPath.dart';
 import 'package:mally/presentation/testSearch/testSearch.dart';
 import 'package:mally/presentation/screenFood/FoodScreen.dart';
 import 'package:mally/presentation/testcamera/testCamera.dart';
@@ -74,30 +75,33 @@ class AppRoutes {
 
   static const String testSearch = '/testSearch';
 
+  static const String testPath = '/testPath';
+
   static Map<String, WidgetBuilder> routes = {
     homeScreen: (context) => HomeScreen(cameras: cameras,),
     photoFiveScreen: (context) => ClothesScreen(),
     photoSixScreen: (context) => const PhotoSixScreen(),
-    homePlusScreen: (context) => HomePlusScreen(),
+    homePlusScreen: (context) => TestPathScreen(),
     photoThreeScreen: (context) => PhotoThreeScreen(),
     photoFourScreen: (context) => PhotoFourScreen(),
     photoOneScreen: (context) => PhotoOneScreen(cameras),
     profileScreen: (context) => const ProfileScreen(),
     photoTwoScreen: (context) => const PhotoTwoScreen(),
-    technologyScreen: (context) => TechnologyScreen(),
+    technologyScreen: (context) => const TechnologyScreen(),
     appNavigationScreen: (context) => const AppNavigationScreen(),
     foodScreen: (context) => TestSearchScreen(),
-    accessoriesCategoryScreen: (context) => AccessoriesCategoryScreen(),
-    photoCategoryScreen: (context) => PhotoCategoryScreen(),
-    carsCategoryScreen: (context) => CarsCategoryScreen(),
-    healthScreen: (context) => HealthCategoryScreen(),
-    groceryScreen: (context) => GroceryCategoryScreen(),
-    beautyScreen: (context) => BeautyCategoryScreen(),
-    connectionScreen: (context) => ConnectionCategoryScreen(),
-    banksScreen: (context) => BanksCategoryScreen(),
-    smokingScreen: (context) => SmokingCategoryScreen(),
-    otherScreen: (context) => OtherCategoryScreen(),
+    accessoriesCategoryScreen: (context) => const AccessoriesCategoryScreen(),
+    photoCategoryScreen: (context) => const PhotoCategoryScreen(),
+    carsCategoryScreen: (context) => const CarsCategoryScreen(),
+    healthScreen: (context) => const HealthCategoryScreen(),
+    groceryScreen: (context) => const GroceryCategoryScreen(),
+    beautyScreen: (context) => const BeautyCategoryScreen(),
+    connectionScreen: (context) => const ConnectionCategoryScreen(),
+    banksScreen: (context) => const BanksCategoryScreen(),
+    smokingScreen: (context) => const SmokingCategoryScreen(),
+    otherScreen: (context) => const OtherCategoryScreen(),
     testCamera: (context) => TestCameraScreen(cameras),
     testSearch: (context) => const MySearchPage(),
+    testPath: (context) => const HomePlusScreen(),
   };
 }

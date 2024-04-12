@@ -3,50 +3,60 @@ import 'package:flutter/material.dart';
 import 'package:mally/core/app_export.dart';
 import 'package:mally/widgets/custom_elevated_button.dart';
 
-class PhotoTwoScreen extends StatelessWidget {
+class PhotoTwoScreen extends StatefulWidget {
   const PhotoTwoScreen({super.key});
+
+  @override
+  State<PhotoTwoScreen> createState() => _PhotoTwoScreenState();
+}
+
+class _PhotoTwoScreenState extends State<PhotoTwoScreen> {
+  var startName = '';
   
   @override
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final pathOfImage = arguments['data'] as String;
-    final shopName = arguments['shopName'] as String;
+    startName = arguments['shopName'] as String;
     File? selectedImage;
     selectedImage = File(pathOfImage);
     
     
     mediaQueryData = MediaQuery.of(context);
-    return SafeArea(
-        child: Scaffold(
-            body: Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.symmetric(vertical: 14.v),
-                child: Column(children: [
-                  selectedImage != null ? Image.file(selectedImage) : const Text('Selected Image'),
-                  /*CustomImageView(
-                      imagePath: pathOfImage,
-                      height: 579.v,
-                      width: 393.h),*/
-                  SizedBox(height: 30.v),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.95, // Set max width to 80% of screen width
+    return PopScope(
+      canPop: false,
+      child: SafeArea(
+          child: Scaffold(
+              body: Container(
+                  width: double.maxFinite,
+                  padding: EdgeInsets.symmetric(vertical: 14.v),
+                  child: Column(children: [
+                    selectedImage != null ? Image.file(selectedImage) : const Text('Selected Image'),
+                    /*CustomImageView(
+                        imagePath: pathOfImage,
+                        height: 579.v,
+                        width: 393.h),*/
+                    SizedBox(height: 30.v),
+                    Container(
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.95, // Set max width to 80% of screen width
+                      ),
+                      child: Text(
+                        "You are currently at $startName. \n Do you wish to proceed?",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ) //theme.textTheme.titleMedium,
+                         
+                      ),
                     ),
-                    child: Text(
-                      "You are currently at $shopName. \n Do you wish to proceed?",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ) //theme.textTheme.titleMedium,
-                       
-                    ),
-                  ),
-                  
-                  SizedBox(height: 30.v),
-                  _buildProceedButtons(context),
-                  SizedBox(height: 5.v)
-                ])),
-            bottomNavigationBar: _buildNavbar(context)));
+                    
+                    SizedBox(height: 30.v),
+                    _buildProceedButtons(context),
+                    SizedBox(height: 5.v)
+                  ])),
+              bottomNavigationBar: _buildNavbar(context))),
+    );
   }
 
   /// Section Widget
@@ -125,26 +135,6 @@ class PhotoTwoScreen extends StatelessWidget {
                   ]))
             ]));
   }
-  /*
-  sendToServer(){
-    try{
-      String filename = this.img!.path.split('/').last;
-      FormData formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(this.img!.path, filename: filename, contentType: MediaType('image', 'jpeg')),
-      });
-      dio.post(
-        'https://mall-ml-model.lm.r.appspot.com:5001/photos/',
-         data: formData,
-         options: Options(
-          headers: {"Content-Type": "multipart/form-data"},
-          method: 'POST',
-          responseType: ResponseType.json,
-         )
-      ).then((response) => print(response)).catchError((error) => print(error));
-    }catch(e){
-      print(e);
-    }
-  }*/
 
   /// Navigates to the photoOneScreen when the action is triggered.
   onTapCANCEL(BuildContext context) {
@@ -153,12 +143,12 @@ class PhotoTwoScreen extends StatelessWidget {
 
   /// Navigates to the photoThreeScreen when the action is triggered.
   onTapPROCEED(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.photoThreeScreen);
+    Navigator.pushNamed(context, AppRoutes.photoThreeScreen, arguments: {'startName' : startName});
   }
 
   /// Navigates to the homeScreen when the action is triggered.
   onTapFrameThree(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.homeScreen);
+    Navigator.pushNamed(context, AppRoutes.testPath);
   }
 
   /// Navigates to the profileScreen when the action is triggered.

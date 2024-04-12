@@ -35,29 +35,36 @@ class PhotoThreeScreen extends StatelessWidget {
   };
 
   TextEditingController searchController = TextEditingController();
-  
+  String startName = '';
+
   @override
   Widget build(BuildContext context) {
+    final arguments = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    startName = arguments['startName'] as String;
+
     mediaQueryData = MediaQuery.of(context);
-    return SafeArea(
-        child: Scaffold(
-            resizeToAvoidBottomInset: false,
-            appBar: _buildAppBar(context),
-            body: Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.symmetric(horizontal: 22.h),
-                child: Column(children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.testSearch);
-                    },
-                    child: FalseCustomSearchView(
-                      controller: searchController, hintText: "Search"),
-                  ),
-                  SizedBox(height: 30.v),
-                  Expanded(child: _buildPhotoThree(context))
-                ])),
-            bottomNavigationBar: _buildNavbar(context)));
+    return PopScope(
+      canPop: false,
+      child: SafeArea(
+          child: Scaffold(
+              resizeToAvoidBottomInset: false,
+              appBar: _buildAppBar(context),
+              body: Container(
+                  width: double.maxFinite,
+                  padding: EdgeInsets.symmetric(horizontal: 22.h),
+                  child: Column(children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.testSearch, arguments: {'startName' : startName});
+                      },
+                      child: FalseCustomSearchView(
+                        controller: searchController, hintText: "Search"),
+                    ),
+                    SizedBox(height: 30.v),
+                    Expanded(child: _buildPhotoThree(context))
+                  ])),
+              bottomNavigationBar: _buildNavbar(context))),
+    );
   }
 
   /// Section Widget
@@ -85,7 +92,7 @@ class PhotoThreeScreen extends StatelessWidget {
               onTap: () {
                 final routeName = categoryRoutes[category.title];
                   if (routeName != null) {
-                    Navigator.pushNamed(context, routeName, arguments: {'data' : category.title});
+                    Navigator.pushNamed(context, routeName, arguments: {'data' : category.title, 'startName' : startName});
                   }
                 },
               child: Card(
@@ -108,7 +115,7 @@ class PhotoThreeScreen extends StatelessWidget {
   /// Section Widget
   Widget _buildNavbar(BuildContext context) {
     return Container(
-        margin: EdgeInsets.only(left: 65.h, right: 59.h, bottom: 10.v, top: 10.v),
+        margin: EdgeInsets.only(left: 65.h, right: 59.h, bottom: 10.v, top: 15.v),
         decoration:
             BoxDecoration(borderRadius: BorderRadiusStyle.roundedBorder15),
         child: Row(
@@ -135,13 +142,13 @@ class PhotoThreeScreen extends StatelessWidget {
                   },
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                 CustomImageView(
-                    imagePath: ImageConstant.imgIconCameraOnprimary,
+                    imagePath: ImageConstant.imgIconCamera,
                     height: 24.adaptSize,
                     width: 24.adaptSize),
                 Padding(
                     padding: EdgeInsets.only(top: 11.v),
                     child: Text("Photo",
-                        style: CustomTextStyles.labelLargeOnPrimary))
+                        style: theme.textTheme.labelLarge))
               ])),
               const Spacer(flex: 48),
               GestureDetector(
@@ -163,7 +170,7 @@ class PhotoThreeScreen extends StatelessWidget {
 
   /// Navigates to the homeScreen when the action is triggered.
   onTapFrameThree(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.homeScreen);
+    Navigator.pushNamed(context, AppRoutes.testPath);
   }
 
   /// Navigates to the photoOneScreen when the action is triggered.

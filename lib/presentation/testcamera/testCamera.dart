@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
@@ -10,8 +9,7 @@ import 'package:mally/core/app_export.dart';
 import 'package:mally/widgets/app_bar/appbar_title.dart';
 import 'package:mally/widgets/app_bar/custom_app_bar.dart';
 import 'package:mally/widgets/custom_elevated_button.dart';
-import 'package:mally/widgets/custom_search_view.dart';
-
+import 'package:mally/widgets/false_custom_search_view.dart';
 
 class TestCameraScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -21,7 +19,7 @@ class TestCameraScreen extends StatefulWidget {
 }
 
 class _TestCameraScreenState extends State<TestCameraScreen> {
-  File? _selectedImage;
+  TextEditingController searchController = TextEditingController();
   bool isTaken = false;
   late CameraController controller;
   XFile? img;
@@ -35,26 +33,34 @@ class _TestCameraScreenState extends State<TestCameraScreen> {
   @override
   void initState() {
     super.initState();
-    controller = CameraController(widget.cameras[0], ResolutionPreset.max);
-    controller.initialize().then((_){
-      if(!mounted){
-        return;
-      }
-      setState(() {
-      });
-    });
+    _initializeCamera();
+  }
+
+  void _initializeCamera() async {
+    controller = CameraController(
+      widget.cameras[0],
+      ResolutionPreset.max,
+    );
+    await controller.initialize();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    controller.dispose(); // Dispose of the camera controller
+    super.dispose();
+    print("This is dispose function message");
   }
 
   Future pickImage(BuildContext context, source) async {
     final ImagePicker imagePicker = ImagePicker();
     try{
-      //final img = await ImagePicker().pickImage(source: source);
       final img = await imagePicker.pickImage(source: source);
       if(img != null){
         setState((){
-          _selectedImage = File(img.path);
           this.img = img;
-          //Navigator.pushNamed(context, AppRoutes.photoThreeScreen);
         });
         //Used to be here
         try{
@@ -165,29 +171,26 @@ class _TestCameraScreenState extends State<TestCameraScreen> {
     }
   }
 
-  TextEditingController searchController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
-    /*if (isTaken == false){
-      pickImage(context, ImageSource.camera);
-      print(strVal);
-      isTaken = true;
-    }*/
-     return SafeArea(
-       child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: _buildAppBar(context),
-        body: Container(
-            width: double.maxFinite,
-            padding: EdgeInsets.symmetric(horizontal: 20.h),
-            child: Column(children: [
-              CustomSearchView(
-                  controller: searchController, hintText: "Search"),
-              SizedBox(height: 30.v),
-              Expanded(child: _buildButtons(context))
-            ])),
-        bottomNavigationBar: _buildNavbar(context)));
+     return PopScope(
+      canPop: false,
+      child: SafeArea(
+        child: Scaffold(
+          resizeToAvoidBottomInset: false,
+          appBar: _buildAppBar(context),
+          body: Container(
+              width: double.maxFinite,
+              padding: EdgeInsets.symmetric(horizontal: 20.h),
+              child: Column(
+                children: [
+                  FalseCustomSearchView(
+                      controller: searchController, hintText: "Search"),
+                  SizedBox(height: 30.v),
+                  Expanded(child: _buildButtons(context))
+                ])),
+          bottomNavigationBar: _buildNavbar(context))),
+     );
          
   }
 
@@ -229,7 +232,7 @@ class _TestCameraScreenState extends State<TestCameraScreen> {
   /// Section Widget
   Widget _buildNavbar(BuildContext context) {
     return Container(
-        margin: EdgeInsets.only(left: 65.h, right: 59.h, bottom: 10.v, top: 10.v),
+        margin: EdgeInsets.only(left: 65.h, right: 59.h, bottom: 10.v, top: 15.v),
         decoration:
             BoxDecoration(borderRadius: BorderRadiusStyle.roundedBorder15),
         child: Row(
@@ -294,7 +297,7 @@ class _TestCameraScreenState extends State<TestCameraScreen> {
 
   /// Navigates to the homeScreen when the action is triggered.
   onTapFrameThree(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.homeScreen);
+    Navigator.pushNamed(context, AppRoutes.testPath);
   }
 
   /// Navigates to the photoOneScreen when the action is triggered.

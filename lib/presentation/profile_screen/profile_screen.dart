@@ -162,7 +162,7 @@ class ProfileScreen extends StatelessWidget {
 
   /// Navigates to the homeScreen when the action is triggered.
   onTapFrameThree(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.homeScreen);
+    Navigator.pushNamed(context, AppRoutes.testPath);
   }
 
   /// Navigates to the photoOneScreen when the action is triggered.

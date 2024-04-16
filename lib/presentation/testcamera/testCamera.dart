@@ -10,6 +10,7 @@ import 'package:mally/widgets/app_bar/appbar_title.dart';
 import 'package:mally/widgets/app_bar/custom_app_bar.dart';
 import 'package:mally/widgets/custom_elevated_button.dart';
 import 'package:mally/widgets/false_custom_search_view.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class TestCameraScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -29,6 +30,7 @@ class _TestCameraScreenState extends State<TestCameraScreen> {
   var strVal = 'str';
   var shopName = 'Name';
   var shopID = 'id';
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -104,6 +106,7 @@ class _TestCameraScreenState extends State<TestCameraScreen> {
           print(e);
         }
       }
+     _isLoading = false;
     }on PlatformException catch(e){
       print("Failed to print image: $e");  
     }
@@ -166,6 +169,7 @@ class _TestCameraScreenState extends State<TestCameraScreen> {
           }catch (e){
             print('Error picking image in $e');
           }
+        _isLoading = false;
     } catch (e) {
       print('Error picking image: $e');
     }
@@ -178,15 +182,13 @@ class _TestCameraScreenState extends State<TestCameraScreen> {
       child: SafeArea(
         child: Scaffold(
           resizeToAvoidBottomInset: false,
-          appBar: _buildAppBar(context),
           body: Container(
+              color: Colors.black,
               width: double.maxFinite,
               padding: EdgeInsets.symmetric(horizontal: 20.h),
               child: Column(
                 children: [
-                  FalseCustomSearchView(
-                      controller: searchController, hintText: "Search"),
-                  SizedBox(height: 30.v),
+                  //SizedBox(height: 30.v),
                   Expanded(child: _buildButtons(context))
                 ])),
           bottomNavigationBar: _buildNavbar(context))),
@@ -196,93 +198,125 @@ class _TestCameraScreenState extends State<TestCameraScreen> {
 
   /// Section Widget
   Widget _buildButtons(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 15.h),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        CustomElevatedButton(
-            height: 60.v,
-            width: 300.h,
-            text: "Pick from Gallery",
-            onPressed: () {
-              galleryImage();
-              //onTapCANCEL(context);
-            }),
-        SizedBox(
-          height: 30.v,
-        ),
-        CustomElevatedButton(
-            height: 60.v,
-            width: 300.h,
-            text: "Open Camera",
-            buttonStyle: CustomButtonStyles.fillGreenA,
-            onPressed: () {
-              pickImage(context, ImageSource.camera);
-              //onTapPROCEED(context);
-            })
-      ]));
-  }
-
-  /// Section Widget
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-        centerTitle: true,
-        title: AppbarTitle(text: "Where do you want to go?"));
+    return  _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            ):
+      Stack(
+        children: [ 
+          const Positioned(
+            top: 25, // Place the text at the top of the stack
+            left: 25,
+            right: 0,
+            child:  Text(
+              'Choose your starting location',
+              style: 
+                TextStyle(fontSize: 20, fontWeight: FontWeight.normal, color: Colors.white, fontFamily: 'Poppins'),
+            ),
+          ),
+          Positioned.fill(
+            bottom: 160.v,
+            child: Image.asset('assets/images/Sally.png')
+          ),
+          SizedBox(
+            height: 15.v,
+          ),
+          Positioned(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CustomElevatedButton(
+                    height: 55.v,
+                    width: 350.h,
+                    text: "Pick from Gallery",
+                    onPressed: () {
+                      galleryImage();
+                      //onTapCANCEL(context);
+                      setState(() {
+                        _isLoading = true;
+                      });
+                    }),
+                SizedBox(
+                  height: 10.v,
+                ),
+                CustomElevatedButton(
+                    height: 55.v,
+                    width: 350.h,
+                    text: "Open Camera",
+                    buttonStyle: CustomButtonStyles.fillGreenA,
+                    onPressed: () {
+                      pickImage(context, ImageSource.camera);
+                      //onTapPROCEED(context);
+                      setState(() {
+                        _isLoading = true;
+                      });
+                }),
+                SizedBox(
+                  height: 30.v,
+                )
+              ],
+            ),
+          ),
+          
+      ]);
   }
 
   /// Section Widget
   Widget _buildNavbar(BuildContext context) {
     return Container(
-        margin: EdgeInsets.only(left: 65.h, right: 59.h, bottom: 10.v, top: 15.v),
-        decoration:
-            BoxDecoration(borderRadius: BorderRadiusStyle.roundedBorder15),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameThree(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    CustomImageView(
-                        imagePath: ImageConstant.imgIconMapPrimary,
-                        height: 24.adaptSize,
-                        width: 24.adaptSize),
-                    Padding(
-                        padding: EdgeInsets.only(top: 13.v),
-                        child: Text("Map", style: theme.textTheme.labelLarge))
-                  ])),
-              const Spacer(flex: 51),
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameTwo(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+      color:const Color(0xFF222222),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 65.h, vertical: 15.v), // Add horizontal padding
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () {
+              onTapFrameThree(context);
+            },
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CustomImageView(
+                imagePath: ImageConstant.imgIconMapPrimary,
+                height: 24.adaptSize,
+                width: 24.adaptSize),
+              Padding(
+                padding: EdgeInsets.only(top: 13.v),
+                child: Text("Map", style: theme.textTheme.labelLarge))
+            ])),
+            const Spacer(flex: 51),
+            GestureDetector(
+              onTap: () {
+                onTapFrameTwo(context);
+              },
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CustomImageView(
+                imagePath: ImageConstant.imgIconCameraOnprimary,
+                height: 24.adaptSize,
+                width: 24.adaptSize,
+                color: const Color(0xFFFFFFFF),),
+              Padding(
+                padding: EdgeInsets.only(top: 11.v),
+                child: Text("Photo",
+                  style: CustomTextStyles.labelLargeOnPrimary))
+            ])),
+            const Spacer(flex: 48),
+            GestureDetector(
+              onTap: () {
+                onTapFrameOne(context);
+              },
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
                 CustomImageView(
-                    imagePath: ImageConstant.imgIconCameraOnprimary,
-                    height: 24.adaptSize,
-                    width: 24.adaptSize),
+                  imagePath: ImageConstant.imgIconUser,
+                  height: 24.adaptSize,
+                  width: 24.adaptSize),
                 Padding(
-                    padding: EdgeInsets.only(top: 11.v),
-                    child: Text("Photo",
-                        style: CustomTextStyles.labelLargeOnPrimary))
-              ])),
-              const Spacer(flex: 48),
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameOne(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    CustomImageView(
-                        imagePath: ImageConstant.imgIconUser,
-                        height: 24.adaptSize,
-                        width: 24.adaptSize),
-                    Padding(
-                        padding: EdgeInsets.only(top: 11.v),
-                        child:
-                            Text("Profile", style: theme.textTheme.labelLarge))
-                  ]))
-            ]));
+                  padding: EdgeInsets.only(top: 11.v),
+                  child:
+                    Text("Profile", style: theme.textTheme.labelLarge))
+        ]))
+    ]));
   }
 
   /// Navigates to the photoOneScreen when the action is triggered.

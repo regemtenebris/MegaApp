@@ -16,7 +16,7 @@ class CustomTextStyles {
       );
   // Label text style
   static get labelLargeOnPrimary => theme.textTheme.labelLarge!.copyWith(
-        color: theme.colorScheme.onPrimary,
+        color: const Color(0xFFFFFFFF),
       );
   // Title text style
   static get titleMediumWhiteA700 => theme.textTheme.titleMedium!.copyWith(

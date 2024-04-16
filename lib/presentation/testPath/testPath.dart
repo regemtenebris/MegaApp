@@ -13,9 +13,11 @@ class TestPathScreen extends StatefulWidget {
 }
 
 class _TestPathScreenState extends State<TestPathScreen> {
+  Uint8List? imageBytes0;
   Uint8List? imageBytes1;
   Uint8List? imageBytes2;
   late Uint8List? imageBytesToShow = ogImageBytes1;
+  late Uint8List? imageBytesToShowNew = ogImageBytes1;
   Uint8List? ogImageBytes0;
   Uint8List? ogImageBytes1;
   Uint8List? ogImageBytes2;
@@ -48,13 +50,18 @@ class _TestPathScreenState extends State<TestPathScreen> {
     });
   }
 
+  void refreshPage(BuildContext context, Map<String, dynamic>? arguments){
+    if (arguments != null) {
+        imageBytes2 = arguments['image1'] as Uint8List?;
+        imageBytes1 = arguments['image2'] as Uint8List?;
+        imageBytes0 = arguments['image0'] as Uint8List?;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-    if (arguments != null) {
-      imageBytes1 = arguments['image2'] as Uint8List?;
-      imageBytes2 = arguments['image1'] as Uint8List?;
-    }
+    refreshPage(context, arguments);
     
     mediaQueryData = MediaQuery.of(context);
     return SafeArea(
@@ -95,8 +102,31 @@ class _TestPathScreenState extends State<TestPathScreen> {
                 onTap: () {
                   Navigator.pushNamed(context, AppRoutes.testSearch); //need to add argument here
                 },
-                child: FalseCustomSearchView(
-                  controller: searchController, hintText: "Search"),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        margin: const EdgeInsets.only(right: 10.0),
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          child: const Text('Button 1'),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        margin: const EdgeInsets.only(left: 10.0),
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          child: const Text('Button 2'),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
               ),
             )
           ), */
@@ -182,8 +212,10 @@ class _TestPathScreenState extends State<TestPathScreen> {
                     onPressed: () {
                       setState(() {
                         _selectedButtonIndex = 0;
-                        if(imageBytes1 == null){
+                        if(imageBytes0 == null){
                           imageBytesToShow = ogImageBytes0;
+                        }else{
+                          imageBytesToShow = imageBytes0;
                         }
                       });
                     },
@@ -217,57 +249,59 @@ class _TestPathScreenState extends State<TestPathScreen> {
   /// Section Widget
   Widget _buildNavbar(BuildContext context) {
     return Container(
-        margin: EdgeInsets.only(left: 65.h, right: 59.h, bottom: 10.v, top: 15.v),
-        decoration:
-            BoxDecoration(borderRadius: BorderRadiusStyle.roundedBorder15),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameThree(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    CustomImageView(
-                        imagePath: ImageConstant.imgIconMap,
-                        height: 24.adaptSize,
-                        width: 24.adaptSize),
-                    Padding(
-                        padding: EdgeInsets.only(top: 13.v),
-                        child: Text("Map", style: CustomTextStyles.labelLargeOnPrimary))
-                  ])),
-              const Spacer(flex: 51),
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameTwo(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                CustomImageView(
-                    imagePath: ImageConstant.imgIconCamera,
-                    height: 24.adaptSize,
-                    width: 24.adaptSize),
-                Padding(
-                    padding: EdgeInsets.only(top: 11.v),
-                    child: Text("Photo",
-                        style: theme.textTheme.labelLarge))
-              ])),
-              const Spacer(flex: 48),
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameOne(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    CustomImageView(
-                        imagePath: ImageConstant.imgIconUser,
-                        height: 24.adaptSize,
-                        width: 24.adaptSize),
-                    Padding(
-                        padding: EdgeInsets.only(top: 11.v),
-                        child:
-                            Text("Profile", style: theme.textTheme.labelLarge))
-                  ]))
-            ]));
+      color:const Color(0xFF222222),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 65.h, vertical: 15.v), // Add horizontal padding
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () {
+              onTapFrameThree(context);
+            },
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CustomImageView(
+                imagePath: ImageConstant.imgIconMap,
+                height: 24.adaptSize,
+                width: 24.adaptSize,
+                color: const Color(0xFFFFFFFF),),
+              Padding(
+                padding: EdgeInsets.only(top: 13.v),
+                child: Text("Map", style: CustomTextStyles.labelLargeOnPrimary))
+          ])),
+          const Spacer(flex: 51),
+          GestureDetector(
+            onTap: () {
+              onTapFrameTwo(context);
+            },
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+          CustomImageView(
+              imagePath: ImageConstant.imgIconCamera,
+              height: 24.adaptSize,
+              width: 24.adaptSize,
+              ),
+          Padding(
+              padding: EdgeInsets.only(top: 11.v),
+              child: Text("Photo",
+              style: theme.textTheme.labelLarge))
+          ])),
+          const Spacer(flex: 48),
+          GestureDetector(
+            onTap: () {
+              onTapFrameOne(context);
+            },
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CustomImageView(
+                imagePath: ImageConstant.imgIconUser,
+                height: 24.adaptSize,
+                width: 24.adaptSize),
+              Padding(
+                padding: EdgeInsets.only(top: 11.v),
+                child:
+                  Text("Profile", style: theme.textTheme.labelLarge))
+            ]))
+    ]));
   }
 
   /// Navigates to the homeScreen when the action is triggered.

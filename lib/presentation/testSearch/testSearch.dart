@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mally/core/app_export.dart';
+import 'package:mally/presentation/category_screen/shopData.dart';
+import 'package:mally/presentation/screenFavourites/ListController.dart';
 import 'package:mally/widgets/custom_search_view.dart';
 
-List<QueryDocumentSnapshot> foodShopsDocuments = List.empty(growable: true);
-bool counter = false;
-String categoryName = '';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,19 +25,25 @@ class MySearchPage extends StatefulWidget {
 }
 
 class _MySearchPageState extends State<MySearchPage> {
+  List<QueryDocumentSnapshot> foodShopsDocuments = List.empty(growable: true);
+  bool counter = false;
+  String categoryName = '';
   late TextEditingController _searchController;
   Uint8List? imageBytes1;
   Uint8List? imageBytes2;
+  Uint8List? imageBytes0;
   var startName = '';
   var destName = '';
-  
-  List<QueryDocumentSnapshot> _searchResult = [];
+  bool _isLoading = false;
+  ListController listController = Get.find(); 
+  List<ShopData> _searchResult = [];
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _searchResult.addAll(foodShopsDocuments);
+    _searchResult = foodShopsDocuments.map((snapshot) => ShopData(snapshot)).toList();
+    //_searchResult.addAll(foodShopsDocuments);
   }
 
   @override
@@ -49,9 +55,16 @@ class _MySearchPageState extends State<MySearchPage> {
   void _onSearchChanged(String value) {
     setState(() {
       _searchResult = foodShopsDocuments
+          .where((snapshot) =>
+              snapshot.id.toLowerCase().contains(value.toLowerCase()))
+          .map((snapshot) => ShopData(snapshot))
+          .toList();
+    });
+    /* setState(() {
+      _searchResult = foodShopsDocuments
           .where((shop) => 
           shop.id.toLowerCase().contains(value.toLowerCase())).toList();
-    });
+    }); */
   }
 
   @override
@@ -65,19 +78,20 @@ class _MySearchPageState extends State<MySearchPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(backgroundColor: const Color(0xFF111111), foregroundColor: const Color(0xFFFFFFFF),),
       body: Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.symmetric(horizontal: 22.h),
-                child: Column(
-                  children: [
-                    CustomSearchView(
-                      controller: _searchController, hintText: "Search",
-                      onChanged: (value) => _onSearchChanged(value)
-                    ),
-                    SizedBox(height: 30.v),
-                    Expanded(child: _buildPhotoThree(context))
-                ]))
+        color: const Color(0xFF111111),
+        width: double.maxFinite,
+        padding: EdgeInsets.symmetric(horizontal: 22.h),
+        child: Column(
+          children: [
+            CustomSearchView(
+              controller: _searchController, hintText: "Search",
+              onChanged: (value) => _onSearchChanged(value)
+            ),
+            SizedBox(height: 30.v),
+            Expanded(child: _buildPhotoThree(context))
+        ]))
     );
   }
 
@@ -96,7 +110,8 @@ class _MySearchPageState extends State<MySearchPage> {
     // Wait for all futures to complete
     await Future.wait(futures);
     setState(() {
-      _searchResult.addAll(foodShopsDocuments);
+      _searchResult = foodShopsDocuments.map((snapshot) => ShopData(snapshot)).toList();
+      //_searchResult.addAll(foodShopsDocuments);
     });
   }
 
@@ -188,18 +203,21 @@ class _MySearchPageState extends State<MySearchPage> {
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
         // Assuming server returns images as base64 strings
-        String? imageString2 = jsonResponse['image1'];
-        String? imageString1 = jsonResponse['image2'];
+        String? imageString1 = jsonResponse['image1'];
+        String? imageString2 = jsonResponse['image2'];
+        String? imageString0 = jsonResponse['image0'];
         print(imageString1);
         print(imageString2);
-        if (imageString1 != null && imageString2 != null) {
+        if (imageString1 != null && imageString2 != null && imageString0 != null) {
           setState(() {
-            imageBytes2 = base64.decode(imageString1);
-            imageBytes1 = base64.decode(imageString2);
+            imageBytes1 = base64.decode(imageString1);
+            imageBytes2 = base64.decode(imageString2);
+            imageBytes0 = base64.decode(imageString0);
           });
         }
         // ignore: use_build_context_synchronously
-        Navigator.pushNamed(context, AppRoutes.homePlusScreen, arguments: { 'image1': imageBytes1, 'image2': imageBytes2});
+        Navigator.pushNamed(context, AppRoutes.testPath, arguments: {'image0': imageBytes0, 'image2': imageBytes2, 'image1': imageBytes1});
+        _isLoading = false;
       } else {
         throw Exception('Failed to fetch data from server');
       }
@@ -210,82 +228,123 @@ class _MySearchPageState extends State<MySearchPage> {
 
   /// Section Widget
   Widget _buildPhotoThree(BuildContext context) {
-    return GridView.builder(
+    return _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            ):
+      GridView.builder(
       shrinkWrap: true,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         mainAxisExtent: 105.v,
         crossAxisCount: 1,
-        mainAxisSpacing: 5.h),
+        mainAxisSpacing: 15.h),
       itemCount: _searchResult.length,
       itemBuilder: (context, index) {
-        return Container(
-          padding: const EdgeInsets.all(8.0),
-          child: GestureDetector(
-            onTap: (){
-              destName = _searchResult[index].id;
-              print(destName);
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('', textScaler: TextScaler.linear(0.5)),
-                    content: Text('You chose $destName as destination. Do you wish to proceed?'),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () {
-                          // Close the dialog
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // Send to server
-                          sendToPathServer(startName, destName);
-                          // Close the dialog
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Proceed'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            child: Row(
-              children: [
-                // Image on the left
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Image.network(_searchResult[index]['Picture'].toString(), width: 100.0, height: 80.0),
+        return GestureDetector(
+          onTap: (){
+            final destName = _searchResult[index].snapshot.id;
+            print(destName);
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('', textScaler: TextScaler.linear(0.5)),
+                  content: Text('You chose $destName as destination. Do you wish to proceed?'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        // Close the dialog
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // Send to server
+                        sendToPathServer(startName, destName);
+                        // Close the dialog
+                        Navigator.of(context).pop();
+                        setState(() {
+                        _isLoading = true;
+                        });
+                      },
+                      child: const Text('Proceed'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          child: Row(
+            children: [
+              // Image on the left
+              ClipRRect(
+                borderRadius: BorderRadius.circular(15.0),
+                child: Container(
+                  color: const Color(0xFFFFFFFF),
+                  child: Image.network(_searchResult[index].snapshot['Picture'].toString(), width: 100.0, height: 90.0, fit: BoxFit.cover)),
+              ),
+              const SizedBox(width: 10.0),
+              // Column to stack captions vertically
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Caption 1
+                    Text(
+                      _searchResult[index].snapshot.id,
+                      style: const TextStyle(fontSize: 16.0, color: Colors.white, fontFamily: 'Poppins'),
+                    ),
+                    const SizedBox(height: 5.0),
+                    // Caption 2
+                    Text(
+                      _searchResult[index].snapshot['Category'],
+                      style: const TextStyle(fontSize: 14.0, color: Colors.grey),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10.0),
-                // Column to stack captions vertically
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Caption 1
-                      Text(
-                        _searchResult[index].id,
-                        style: const TextStyle(fontSize: 16.0),
-                      ),
-                      const SizedBox(height: 5.0),
-                      // Caption 2
-                      Text(
-                        _searchResult[index]['Category'],
-                        style: const TextStyle(fontSize: 14.0, color: Colors.grey),
-                      ),
-                    ],
-                  ),
+              ),
+              // Star icon
+              IconButton(
+                padding: EdgeInsets.only(bottom: 75.v),
+                icon: Icon(
+                  Icons.star,
+                  color: doesContain(index) ? Colors.amber : Colors.grey,
                 ),
-              ],
-            ),
+                onPressed: () async { 
+                  setState(()  {
+                    _searchResult[index].isStarred = !_searchResult[index].isStarred;
+                    if (!doesContain(index)) {
+                        listController.itemList.add(_searchResult[index]);
+                    } else {
+                      removeStar(index);
+                    }
+                  });
+                }
+              ),
+            ],
           ),
         );
       }
     );
+  }
+
+  bool doesContain(index) {
+    for (int i = 0; i < listController.itemList.length; i++){
+      if (listController.itemList[i].snapshot.id == _searchResult[index].snapshot.id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void removeStar(index){
+    for (int i = 0; i < listController.itemList.length; i++){
+      if (listController.itemList[i].snapshot.id == _searchResult[index].snapshot.id) {
+        listController.itemList.removeAt(i);
+      }
+    }
   }
 }
 
@@ -299,7 +358,7 @@ Map<String, int> shopsMap = {
 'AltynAlan': 6,
 'AlyeParusa': 7,
 'AngelinUs1': 8,
-'Anime Shop': 9,
+'Anime shop': 9,
 'ArmaniExchange': 10,
 'Askona': 11,
 'Atelie': 12,

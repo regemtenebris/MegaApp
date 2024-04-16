@@ -28,33 +28,42 @@ class _PhotoTwoScreenState extends State<PhotoTwoScreen> {
       child: SafeArea(
           child: Scaffold(
               body: Container(
-                  width: double.maxFinite,
-                  padding: EdgeInsets.symmetric(vertical: 14.v),
-                  child: Column(children: [
-                    selectedImage != null ? Image.file(selectedImage) : const Text('Selected Image'),
-                    /*CustomImageView(
-                        imagePath: pathOfImage,
-                        height: 579.v,
-                        width: 393.h),*/
-                    SizedBox(height: 30.v),
-                    Container(
-                      constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.95, // Set max width to 80% of screen width
+                color: const Color(0xFF111111),
+                  width: double.infinity,
+                  //padding: EdgeInsets.symmetric(vertical: 14.v),
+                  child: Column(
+                    children: [
+                      selectedImage != null 
+                      ? Container(
+                          width: 395, 
+                          height: 540, 
+                          child: Image.file(
+                            selectedImage, 
+                            fit: BoxFit.cover
+                          )
+                        )
+                      : const Text('Selected Image'),
+                      SizedBox(height: 30.v),
+                      Container(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.95, // Set max width to 80% of screen width
+                        ),
+                        child: Text(
+                          "You are currently at $startName. \n Do you wish to proceed?",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: 'Poppins',
+                            color:  Color(0xFFFFFFFF)
+                          ) //theme.textTheme.titleMedium,
+                          
+                        ),
                       ),
-                      child: Text(
-                        "You are currently at $startName. \n Do you wish to proceed?",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ) //theme.textTheme.titleMedium,
-                         
-                      ),
-                    ),
-                    
-                    SizedBox(height: 30.v),
-                    _buildProceedButtons(context),
-                    SizedBox(height: 5.v)
-                  ])),
+                      
+                      SizedBox(height: 30.v),
+                      _buildProceedButtons(context),
+                      SizedBox(height: 5.v)
+          ])),
               bottomNavigationBar: _buildNavbar(context))),
     );
   }
@@ -87,53 +96,54 @@ class _PhotoTwoScreenState extends State<PhotoTwoScreen> {
   /// Section Widget
   Widget _buildNavbar(BuildContext context) {
     return Container(
-        margin: EdgeInsets.only(left: 65.h, right: 59.h, bottom: 15.v),
-        decoration:
-            BoxDecoration(borderRadius: BorderRadiusStyle.roundedBorder15),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameThree(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    CustomImageView(
-                        imagePath: ImageConstant.imgIconMapPrimary,
-                        height: 24.adaptSize,
-                        width: 24.adaptSize),
-                    Padding(
-                        padding: EdgeInsets.only(top: 13.v),
-                        child: Text("Map", style: theme.textTheme.labelLarge))
-                  ])),
-              const Spacer(flex: 51),
-              Column(mainAxisSize: MainAxisSize.min, children: [
+        color:const Color(0xFF222222),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 65.h, vertical: 15.v), // Add horizontal padding
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () {
+              onTapFrameThree(context);
+            },
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CustomImageView(
+                imagePath: ImageConstant.imgIconMapPrimary,
+                height: 24.adaptSize,
+                width: 24.adaptSize),
+              Padding(
+                padding: EdgeInsets.only(top: 13.v),
+                child: Text("Map", style: theme.textTheme.labelLarge))
+            ])),
+            const Spacer(flex: 51),
+            Column(mainAxisSize: MainAxisSize.min, children: [
+            CustomImageView(
+              imagePath: ImageConstant.imgIconCameraOnprimary,
+              height: 24.adaptSize,
+              width: 24.adaptSize,
+              color: const Color(0xFFFFFFFF),),
+            Padding(
+              padding: EdgeInsets.only(top: 11.v),
+              child: Text("Photo",
+                style: CustomTextStyles.labelLargeOnPrimary))
+                        ]),
+            const Spacer(flex: 48),
+            GestureDetector(
+              onTap: () {
+                onTapFrameOne(context);
+              },
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
                 CustomImageView(
-                    imagePath: ImageConstant.imgIconCameraOnprimary,
-                    height: 24.adaptSize,
-                    width: 24.adaptSize),
+                  imagePath: ImageConstant.imgIconUser,
+                  height: 24.adaptSize,
+                  width: 24.adaptSize),
                 Padding(
-                    padding: EdgeInsets.only(top: 11.v),
-                    child: Text("Photo",
-                        style: CustomTextStyles.labelLargeOnPrimary))
-              ]),
-              const Spacer(flex: 48),
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameOne(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    CustomImageView(
-                        imagePath: ImageConstant.imgIconUser,
-                        height: 24.adaptSize,
-                        width: 24.adaptSize),
-                    Padding(
-                        padding: EdgeInsets.only(top: 11.v),
-                        child:
-                            Text("Profile", style: theme.textTheme.labelLarge))
-                  ]))
-            ]));
+                  padding: EdgeInsets.only(top: 11.v),
+                  child:
+                    Text("Profile", style: theme.textTheme.labelLarge))
+        ]))
+    ]));
   }
 
   /// Navigates to the photoOneScreen when the action is triggered.

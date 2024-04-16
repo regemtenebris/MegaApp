@@ -141,6 +141,7 @@ class PrimaryColors {
 
   // Green
   Color get greenA700 => const Color(0XFF0CCD14);
+  Color get greenA500 => Color.fromARGB(255, 32, 156, 36);
 
   // White
   Color get whiteA700 => const Color(0XFFFFFFFF);

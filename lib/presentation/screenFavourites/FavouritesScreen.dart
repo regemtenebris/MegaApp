@@ -3,30 +3,32 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:get/get.dart';
 import 'package:mally/core/app_export.dart';
-import 'package:mally/presentation/category_screen/shopData.dart';
-import 'package:mally/presentation/screenFavourites/ListController.dart';
 import 'package:mally/widgets/custom_search_view.dart';
+import 'package:mally/widgets/app_bar/appbar_title.dart';
+import 'package:mally/widgets/app_bar/custom_app_bar.dart';
+import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:get/get.dart';
+import 'package:mally/presentation/screenFavourites/ListController.dart';
+import 'package:mally/presentation/category_screen/shopData.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();  // Initialize Firebase
-  runApp(const TechnologyScreen());
+  runApp(const FavouritesScreen());
 }
-
 
 // ignore: must_be_immutable
-class TechnologyScreen extends StatefulWidget {
-  const TechnologyScreen({super.key});
+class FavouritesScreen extends StatefulWidget {
+  const FavouritesScreen({super.key});
 
   @override
-  State<TechnologyScreen> createState() => _TechnologyScreenState();
+  State<FavouritesScreen> createState() => _FavouritesScreenState();
 }
 
-
-class _TechnologyScreenState extends State<TechnologyScreen> {
+class _FavouritesScreenState extends State<FavouritesScreen> {
+  //variables
   List<QueryDocumentSnapshot> foodShopsDocuments = List.empty(growable: true);
   bool counter = false;
   String categoryName = '';
@@ -38,11 +40,12 @@ class _TechnologyScreenState extends State<TechnologyScreen> {
   String destName = '';
   ListController listController = Get.find(); // Find the existing controller
 
+
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _searchResult = foodShopsDocuments.map((snapshot) => ShopData(snapshot)).toList();
+    _searchResult.addAll(listController.itemList);
   }
 
   @override
@@ -53,51 +56,10 @@ class _TechnologyScreenState extends State<TechnologyScreen> {
 
   void _onSearchChanged(String value) {
     setState(() {
-      _searchResult = foodShopsDocuments
-          .where((snapshot) =>
-              snapshot.id.toLowerCase().contains(value.toLowerCase()))
-          .map((snapshot) => ShopData(snapshot))
-          .toList();
+      _searchResult = listController.itemList
+          .where((shop) => 
+          shop.snapshot.id.toLowerCase().contains(value.toLowerCase())).toList();
     });
-  }
-
-  //concurency version, but list is not stable
-  Future<void> getFoodShops() async {
-    // Initialize Firestore
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-    // Create a list to hold futures
-    List<Future<void>> futures = [];
-
-    // Add each document's data fetching future to the list
-    for (int i = 0; i < 3; i++) {
-      futures.add(fetchDataForDocument(firestore, i));
-    }
-    // Wait for all futures to complete
-    await Future.wait(futures);
-    setState(() {
-      _searchResult = foodShopsDocuments.map((snapshot) => ShopData(snapshot)).toList();
-    });
-  }
-
-  Future<void> fetchDataForDocument(FirebaseFirestore firestore, int documentIndex) async {
-    try {
-    // Fetch the document
-    DocumentSnapshot document = await firestore.collection('Shops').doc('$documentIndex').get();
-
-    // Check if the document exists
-    if (document.exists) {
-      // Fetch stores subcollection data
-      QuerySnapshot storesSnapshot = await document.reference.collection('Stores').where("Category", isEqualTo: categoryName).get();
-
-      // Process each store
-      foodShopsDocuments.addAll(storesSnapshot.docs);
-    } else {
-      print('Document $documentIndex does not exist.');
-    }
-    } catch (error) {
-      print('Error fetching data for document $documentIndex: $error');
-    }
   }
 
   Future sendToPathServer(startShop, destShop) async{
@@ -149,41 +111,64 @@ class _TechnologyScreenState extends State<TechnologyScreen> {
   @override
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    categoryName = arguments['data'] as String;
     startName = arguments['startName'] as String;
-    
-    if (counter == false){
-      getFoodShops();
-      counter = true;
-    }
 
     mediaQueryData = MediaQuery.of(context);
+    if (listController.itemList.isEmpty) {
     return SafeArea(
         child: Scaffold(
             resizeToAvoidBottomInset: false,
-            //appBar: _buildAppBar(context),
+            appBar: _buildAppBar(context),
             body: Container(
               color: const Color(0xFF111111),
-                width: double.maxFinite,
-                padding: EdgeInsets.symmetric(horizontal: 22.h),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                      child:  Text(
-                        '$categoryName Category',
-                        style: 
-                          const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.white, fontFamily: 'Poppins'),
-                      ),
-                    ),
-                    CustomSearchView(
-                      controller: _searchController, hintText: "Search",
-                      onChanged: (value) => _onSearchChanged(value)
-                    ),
-                    SizedBox(height: 30.v),
-                    Expanded(child: _buildPhotoThree(context))
-                ])),
+              width: double.maxFinite,
+              padding: EdgeInsets.symmetric(horizontal: 22.h),
+              child: Column(children: [
+                CustomSearchView(
+                  controller: _searchController, hintText: "Search",
+                  onChanged: (value) => _onSearchChanged(value)
+                ),
+                SizedBox(height: 30.v),
+                Expanded(child: _buildEmpty(context))
+              ])),
             bottomNavigationBar: _buildNavbar(context)));
+    }else{
+      return SafeArea(
+        child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            appBar: _buildAppBar(context),
+            body: Container(
+              color: const Color(0xFF111111),
+              width: double.maxFinite,
+              padding: EdgeInsets.symmetric(horizontal: 22.h),
+              child: Column(children: [
+                CustomSearchView(
+                  controller: _searchController, hintText: "Search",
+                  onChanged: (value) => _onSearchChanged(value)
+                ),
+                SizedBox(height: 30.v),
+                Expanded(child: _buildPhotoThree(context))
+              ])),
+          bottomNavigationBar: _buildNavbar(context)));
+    }
+  }
+
+  Widget _buildEmpty(BuildContext context){
+    return const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          "Your 'favourites' list is empty",
+          style: TextStyle(
+            fontSize: 16.0, 
+            fontFamily: 'Poppins', 
+            color: Color(0xFF9B9B9B)
+          )
+        ),
+
+      ],
+    );
   }
 
   /// Section Widget
@@ -193,144 +178,125 @@ class _TechnologyScreenState extends State<TechnologyScreen> {
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         mainAxisExtent: 105.v,
         crossAxisCount: 1,
-        mainAxisSpacing: 15.h),
+        mainAxisSpacing: 5.h),
       itemCount: _searchResult.length,
       itemBuilder: (context, index) {
-        return GestureDetector(
-          onTap: (){
-            final destName = _searchResult[index].snapshot.id;
-            print(destName);
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text('', textScaler: TextScaler.linear(0.5)),
-                  content: Text('You chose $destName as destination. Do you wish to proceed?'),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        // Close the dialog
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // Send to server
-                        sendToPathServer(startName, destName);
-                        // Close the dialog
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('Proceed'),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-          child: Row(
-            children: [
-              // Image on the left
-              ClipRRect(
-                borderRadius: BorderRadius.circular(15.0),
-                child: Container(
-                  color: const Color(0xFFFFFFFF),
-                  child: Image.network(_searchResult[index].snapshot['Picture'].toString(), width: 100.0, height: 90.0, fit: BoxFit.cover)),
-              ),
-              const SizedBox(width: 10.0),
-              // Column to stack captions vertically
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Caption 1
-                    Text(
-                      _searchResult[index].snapshot.id,
-                      style: const TextStyle(fontSize: 16.0, color: Colors.white, fontFamily: 'Poppins'),
-                    ),
-                    const SizedBox(height: 5.0),
-                    // Caption 2
-                    Text(
-                      _searchResult[index].snapshot['Category'],
-                      style: const TextStyle(fontSize: 14.0, color: Colors.grey),
-                    ),
-                  ],
+        return Container(
+          padding: const EdgeInsets.all(8.0),
+          child: GestureDetector(
+            onTap: (){
+              final destName = _searchResult[index].snapshot.id;
+              print(destName);
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('', textScaler: TextScaler.linear(0.5)),
+                    content: Text('You chose $destName as destination. Do you wish to proceed?'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          // Close the dialog
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Send to server
+                          sendToPathServer(startName, destName);
+                          // Close the dialog
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Proceed'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            child: Row(
+              children: [
+                // Image on the left
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: Container(
+                    color: const Color(0xFFFFFFFF),
+                    child: Image.network(_searchResult[index].snapshot['Picture'].toString(), width: 100.0, height: 80.0, fit: BoxFit.cover)),
                 ),
-              ),
-              // Star icon
-              IconButton(
-                padding: EdgeInsets.only(bottom: 75.v),
-                icon: Icon(
-                  Icons.star,
-                  color: doesContain(index) ? Colors.amber : Colors.grey,
+                const SizedBox(width: 10.0),
+                // Column to stack captions vertically
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Caption 1
+                      Text(
+                        _searchResult[index].snapshot.id,
+                        style: const TextStyle(fontSize: 16.0, color: Colors.white, fontFamily: 'Poppins'),
+                      ),
+                      const SizedBox(height: 5.0),
+                      // Caption 2
+                      Text(
+                        _searchResult[index].snapshot['Category'],
+                        style: const TextStyle(fontSize: 14.0, color: Colors.grey),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () async { 
-                  setState(()  {
-                    _searchResult[index].isStarred = !_searchResult[index].isStarred;
-                    if (!doesContain(index)) {
-                        listController.itemList.add(_searchResult[index]);
-                    } else {
-                      removeStar(index);
-                    }
-                  });
-                }
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }
     );
   }
 
-  bool doesContain(index) {
-    for (int i = 0; i < listController.itemList.length; i++){
-      if (listController.itemList[i].snapshot.id == _searchResult[index].snapshot.id) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  void removeStar(index){
-    for (int i = 0; i < listController.itemList.length; i++){
-      if (listController.itemList[i].snapshot.id == _searchResult[index].snapshot.id) {
-        listController.itemList.removeAt(i);
-      }
-    }
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+   return const CustomAppBar(
+        centerTitle: true,
+        title: Text(
+          "Where do you want to go?",
+          style: TextStyle(
+            color: Color(0xFFFFFFFF),
+            fontSize: 15,
+            fontFamily: 'Poppins'
+          ),  
+        ),
+        backgroundColor: Color(0xFF111111), // Specify background color
+    );
   }
 
   /// Section Widget
   Widget _buildNavbar(BuildContext context) {
     return Container(
-      color:const Color(0xFF222222),
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 65.h, vertical: 15.v), // Add horizontal padding
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: () {
-              onTapFrameThree(context);
-            },
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              CustomImageView(
-                imagePath: ImageConstant.imgIconMapPrimary,
-                height: 24.adaptSize,
-                width: 24.adaptSize),
-              Padding(
-                padding: EdgeInsets.only(top: 13.v),
-                child: Text("Map", style: theme.textTheme.labelLarge))
-            ])),
-          const Spacer(flex: 51),
-          GestureDetector(
-            onTap: () {
-              onTapFrameTwo(context);
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min, 
-              children: [
+        color:const Color(0xFF222222),
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 65.h, vertical: 15.v), // Add horizontal padding
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                  onTap: () {
+                    onTapFrameThree(context);
+                  },
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    CustomImageView(
+                        imagePath: ImageConstant.imgIconMapPrimary,
+                        height: 24.adaptSize,
+                        width: 24.adaptSize),
+                    Padding(
+                        padding: EdgeInsets.only(top: 13.v),
+                        child: Text("Map", style: theme.textTheme.labelLarge))
+                  ])),
+              const Spacer(flex: 51),
+              GestureDetector(
+                  onTap: () {
+                    onTapFrameTwo(context);
+                  },
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
                 CustomImageView(
                     imagePath: ImageConstant.imgIconCamera,
                     height: 24.adaptSize,
@@ -341,24 +307,22 @@ class _TechnologyScreenState extends State<TechnologyScreen> {
                     child: Text("Photo",
                         style: theme.textTheme.labelLarge))
               ])),
-          const Spacer(flex: 48),
-          GestureDetector(
-            onTap: () {
-              onTapFrameOne(context);
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min, 
-              children: [
-                CustomImageView(
-                  imagePath: ImageConstant.imgIconUser,
-                  height: 24.adaptSize,
-                  width: 24.adaptSize),
-                Padding(
-                  padding: EdgeInsets.only(top: 11.v),
-                  child:
-                    Text("Profile", style: theme.textTheme.labelLarge))
-              ]))
-        ]));
+              const Spacer(flex: 48),
+              GestureDetector(
+                  onTap: () {
+                    onTapFrameOne(context);
+                  },
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    CustomImageView(
+                        imagePath: ImageConstant.imgIconUser,
+                        height: 24.adaptSize,
+                        width: 24.adaptSize),
+                    Padding(
+                        padding: EdgeInsets.only(top: 11.v),
+                        child:
+                            Text("Profile", style: theme.textTheme.labelLarge))
+                  ]))
+            ]));
   }
 
   /// Navigates to the homeScreen when the action is triggered.
@@ -376,6 +340,7 @@ class _TechnologyScreenState extends State<TechnologyScreen> {
     Navigator.pushNamed(context, AppRoutes.profileScreen);
   }
 }
+
 
 Map<String, int> shopsMap = {
   '33 pingvina': 0,

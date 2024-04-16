@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:get/get.dart';
 import 'package:mally/core/app_export.dart';
+import 'package:mally/presentation/category_screen/shopData.dart';
+import 'package:mally/presentation/screenFavourites/ListController.dart';
 import 'package:mally/widgets/custom_search_view.dart';
 import 'package:mally/widgets/app_bar/appbar_title.dart';
 import 'package:mally/widgets/app_bar/custom_app_bar.dart';
@@ -31,17 +33,18 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> {
   bool counter = false;
   String categoryName = '';
   late TextEditingController _searchController;
-  List<QueryDocumentSnapshot> _searchResult = [];
+  List<ShopData> _searchResult = [];
   Uint8List? imageBytes1;
   Uint8List? imageBytes2;
   String startName = '';
   String destName = '';
+  ListController listController = Get.find(); // Find the existing controller
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _searchResult.addAll(foodShopsDocuments);
+    _searchResult = foodShopsDocuments.map((snapshot) => ShopData(snapshot)).toList();
   }
 
   @override
@@ -53,8 +56,10 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> {
   void _onSearchChanged(String value) {
     setState(() {
       _searchResult = foodShopsDocuments
-          .where((shop) => 
-          shop.id.toLowerCase().contains(value.toLowerCase())).toList();
+          .where((snapshot) =>
+              snapshot.id.toLowerCase().contains(value.toLowerCase()))
+          .map((snapshot) => ShopData(snapshot))
+          .toList();
     });
   }
 
@@ -73,7 +78,7 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> {
     // Wait for all futures to complete
     await Future.wait(futures);
     setState(() {
-      _searchResult.addAll(foodShopsDocuments);
+      _searchResult = foodShopsDocuments.map((snapshot) => ShopData(snapshot)).toList();
     });
   }
 
@@ -89,13 +94,6 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> {
 
       // Process each store
       foodShopsDocuments.addAll(storesSnapshot.docs);
-      /* for (QueryDocumentSnapshot document in foodShopsDocuments) {
-        print('Shop Name: ${document.id}');
-        print('Category: ${document['Category']}');
-        print('Description: ${document['Description']}');
-        print('Picture: ${document['Picture']}');
-        // Add your logic here
-      } */
     } else {
       print('Document $documentIndex does not exist.');
     }
@@ -141,7 +139,7 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> {
           });
         }
         // ignore: use_build_context_synchronously
-        Navigator.pushNamed(context, AppRoutes.homePlusScreen, arguments: { 'image1': imageBytes1, 'image2': imageBytes2});
+        Navigator.pushNamed(context, AppRoutes.testPath, arguments: { 'image1': imageBytes1, 'image2': imageBytes2});
       } else {
         throw Exception('Failed to fetch data from server');
       }
@@ -155,7 +153,7 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> {
     final arguments = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     categoryName = arguments['data'] as String;
     startName = arguments['startName'] as String;
-
+    
     if (counter == false){
       getFoodShops();
       counter = true;
@@ -165,17 +163,27 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> {
     return SafeArea(
         child: Scaffold(
             resizeToAvoidBottomInset: false,
-            appBar: _buildAppBar(context),
+            //appBar: _buildAppBar(context),
             body: Container(
+              color: const Color(0xFF111111),
                 width: double.maxFinite,
                 padding: EdgeInsets.symmetric(horizontal: 22.h),
-                child: Column(children: [
-                  CustomSearchView(
-                    controller: _searchController, hintText: "Search",
-                    onChanged: (value) => _onSearchChanged(value)
-                  ),
-                  SizedBox(height: 30.v),
-                  Expanded(child: _buildPhotoThree(context))
+                child: Column(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      child:  Text(
+                        '$categoryName Category',
+                        style: 
+                          const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.white, fontFamily: 'Poppins'),
+                      ),
+                    ),
+                    CustomSearchView(
+                      controller: _searchController, hintText: "Search",
+                      onChanged: (value) => _onSearchChanged(value)
+                    ),
+                    SizedBox(height: 30.v),
+                    Expanded(child: _buildPhotoThree(context))
                 ])),
             bottomNavigationBar: _buildNavbar(context)));
   }
@@ -187,139 +195,172 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> {
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         mainAxisExtent: 105.v,
         crossAxisCount: 1,
-        mainAxisSpacing: 5.h),
+        mainAxisSpacing: 15.h),
       itemCount: _searchResult.length,
       itemBuilder: (context, index) {
-        return Container(
-          padding: const EdgeInsets.all(8.0),
-          child: GestureDetector(
-            onTap: (){
-              final destName = _searchResult[index].id;
-              print(destName);
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('', textScaler: TextScaler.linear(0.5)),
-                    content: Text('You chose $destName as destination. Do you wish to proceed?'),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () {
-                          // Close the dialog
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // Send to server
-                          sendToPathServer(startName, destName);
-                          // Close the dialog
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Proceed'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            child: Row(
-              children: [
-                // Image on the left
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Image.network(_searchResult[index]['Picture'].toString(), width: 100.0, height: 80.0),
+        return GestureDetector(
+          onTap: (){
+            final destName = _searchResult[index].snapshot.id;
+            print(destName);
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('', textScaler: TextScaler.linear(0.5)),
+                  content: Text('You chose $destName as destination. Do you wish to proceed?'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        // Close the dialog
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // Send to server
+                        sendToPathServer(startName, destName);
+                        // Close the dialog
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Proceed'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          child: Row(
+            children: [
+              // Image on the left
+              ClipRRect(
+                borderRadius: BorderRadius.circular(15.0),
+                child: Container(
+                  color: const Color(0xFFFFFFFF),
+                  child: Image.network(_searchResult[index].snapshot['Picture'].toString(), width: 100.0, height: 90.0, fit: BoxFit.cover)),
+              ),
+              const SizedBox(width: 10.0),
+              // Column to stack captions vertically
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Caption 1
+                    Text(
+                      _searchResult[index].snapshot.id,
+                      style: const TextStyle(fontSize: 16.0, color: Colors.white, fontFamily: 'Poppins'),
+                    ),
+                    const SizedBox(height: 5.0),
+                    // Caption 2
+                    Text(
+                      _searchResult[index].snapshot['Category'],
+                      style: const TextStyle(fontSize: 14.0, color: Colors.grey),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10.0),
-                // Column to stack captions vertically
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Caption 1
-                      Text(
-                        _searchResult[index].id,
-                        style: const TextStyle(fontSize: 16.0),
-                      ),
-                      const SizedBox(height: 5.0),
-                      // Caption 2
-                      Text(
-                        _searchResult[index]['Category'],
-                        style: const TextStyle(fontSize: 14.0, color: Colors.grey),
-                      ),
-                    ],
-                  ),
+              ),
+              // Star icon
+              IconButton(
+                padding: EdgeInsets.only(bottom: 75.v),
+                icon: Icon(
+                  Icons.star,
+                  color: doesContain(index) ? Colors.amber : Colors.grey,
                 ),
-              ],
-            ),
+                onPressed: () async { 
+                  setState(()  {
+                    _searchResult[index].isStarred = !_searchResult[index].isStarred;
+                    if (!doesContain(index)) {
+                        listController.itemList.add(_searchResult[index]);
+                    } else {
+                      removeStar(index);
+                    }
+                  });
+                }
+              ),
+            ],
           ),
         );
       }
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-        centerTitle: true,
-        title: AppbarTitle(text: "Grocery Category"));
+  bool doesContain(index) {
+    for (int i = 0; i < listController.itemList.length; i++){
+      if (listController.itemList[i].snapshot.id == _searchResult[index].snapshot.id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void removeStar(index){
+    for (int i = 0; i < listController.itemList.length; i++){
+      if (listController.itemList[i].snapshot.id == _searchResult[index].snapshot.id) {
+        listController.itemList.removeAt(i);
+      }
+    }
   }
 
   /// Section Widget
   Widget _buildNavbar(BuildContext context) {
     return Container(
-        margin: EdgeInsets.only(left: 65.h, right: 59.h, bottom: 15.v),
-        decoration:
-            BoxDecoration(borderRadius: BorderRadiusStyle.roundedBorder15),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameThree(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    CustomImageView(
-                        imagePath: ImageConstant.imgIconMapPrimary,
-                        height: 24.adaptSize,
-                        width: 24.adaptSize),
-                    Padding(
-                        padding: EdgeInsets.only(top: 13.v),
-                        child: Text("Map", style: theme.textTheme.labelLarge))
-                  ])),
-              const Spacer(flex: 51),
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameTwo(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+      color:const Color(0xFF222222),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 65.h, vertical: 15.v), // Add horizontal padding
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () {
+              onTapFrameThree(context);
+            },
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CustomImageView(
+                imagePath: ImageConstant.imgIconMapPrimary,
+                height: 24.adaptSize,
+                width: 24.adaptSize),
+              Padding(
+                padding: EdgeInsets.only(top: 13.v),
+                child: Text("Map", style: theme.textTheme.labelLarge))
+            ])),
+          const Spacer(flex: 51),
+          GestureDetector(
+            onTap: () {
+              onTapFrameTwo(context);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min, 
+              children: [
                 CustomImageView(
-                    imagePath: ImageConstant.imgIconCameraOnprimary,
+                    imagePath: ImageConstant.imgIconCamera,
                     height: 24.adaptSize,
-                    width: 24.adaptSize),
+                    width: 24.adaptSize,
+                    ),
                 Padding(
                     padding: EdgeInsets.only(top: 11.v),
                     child: Text("Photo",
-                        style: CustomTextStyles.labelLargeOnPrimary))
+                        style: theme.textTheme.labelLarge))
               ])),
-              const Spacer(flex: 48),
-              GestureDetector(
-                  onTap: () {
-                    onTapFrameOne(context);
-                  },
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    CustomImageView(
-                        imagePath: ImageConstant.imgIconUser,
-                        height: 24.adaptSize,
-                        width: 24.adaptSize),
-                    Padding(
-                        padding: EdgeInsets.only(top: 11.v),
-                        child:
-                            Text("Profile", style: theme.textTheme.labelLarge))
-                  ]))
-            ]));
+          const Spacer(flex: 48),
+          GestureDetector(
+            onTap: () {
+              onTapFrameOne(context);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min, 
+              children: [
+                CustomImageView(
+                  imagePath: ImageConstant.imgIconUser,
+                  height: 24.adaptSize,
+                  width: 24.adaptSize),
+                Padding(
+                  padding: EdgeInsets.only(top: 11.v),
+                  child:
+                    Text("Profile", style: theme.textTheme.labelLarge))
+              ]))
+        ]));
   }
 
   /// Navigates to the homeScreen when the action is triggered.
@@ -339,7 +380,7 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> {
 }
 
 Map<String, int> shopsMap = {
-    '33 pingvina': 0,
+  '33 pingvina': 0,
   '7Life': 1,
   'ActualOptic': 2,
   'Adika': 3,

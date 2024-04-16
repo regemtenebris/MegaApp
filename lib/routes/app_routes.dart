@@ -7,6 +7,7 @@ import 'package:mally/presentation/screenCarsCategory/carsCategoryScreen.dart';
 import 'package:mally/presentation/home_screen/home_screen.dart';
 import 'package:mally/presentation/screenClothes/ClothesScreen.dart';
 import 'package:mally/presentation/screenConnection/connectionScreen.dart';
+import 'package:mally/presentation/screenFavourites/FavouritesScreen.dart';
 import 'package:mally/presentation/screenGrocery/groceryScreen.dart';
 import 'package:mally/presentation/screenHealth/healthScreen.dart';
 import 'package:mally/presentation/screenOther/otherScreen.dart';
@@ -77,11 +78,13 @@ class AppRoutes {
 
   static const String testPath = '/testPath';
 
+  static const String favouritesScreen = '/favouritesScreen';
+
   static Map<String, WidgetBuilder> routes = {
     homeScreen: (context) => HomeScreen(cameras: cameras,),
     photoFiveScreen: (context) => ClothesScreen(),
     photoSixScreen: (context) => const PhotoSixScreen(),
-    homePlusScreen: (context) => TestPathScreen(),
+    homePlusScreen: (context) => const HomePlusScreen(),
     photoThreeScreen: (context) => PhotoThreeScreen(),
     photoFourScreen: (context) => PhotoFourScreen(),
     photoOneScreen: (context) => PhotoOneScreen(cameras),
@@ -102,6 +105,7 @@ class AppRoutes {
     otherScreen: (context) => const OtherCategoryScreen(),
     testCamera: (context) => TestCameraScreen(cameras),
     testSearch: (context) => const MySearchPage(),
-    testPath: (context) => const HomePlusScreen(),
+    testPath: (context) => TestPathScreen(),
+    favouritesScreen: (context) => const FavouritesScreen(),
   };
 }
